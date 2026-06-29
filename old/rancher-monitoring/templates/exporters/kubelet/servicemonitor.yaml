@@ -51,19 +51,22 @@ spec:
     {{- include "kube-prometheus-stack.kubelet.authConfig" . | indent 4 }}
     honorLabels: {{ .Values.kubelet.serviceMonitor.honorLabels }}
     honorTimestamps: {{ .Values.kubelet.serviceMonitor.honorTimestamps }}
+    {{- $hasExtra := or .Values.global.cattle.clusterId .Values.global.cattle.clusterName }}
+    {{- if or .Values.kubelet.serviceMonitor.metricRelabelings $hasExtra }}
     metricRelabelings:
 {{- if .Values.kubelet.serviceMonitor.metricRelabelings }}
 {{ tpl (toYaml .Values.kubelet.serviceMonitor.metricRelabelings | indent 6) . }}
 {{- end }}
-    {{ if .Values.global.cattle.clusterId }}
+    {{- if .Values.global.cattle.clusterId }}
       - sourceLabels: [__address__]
         targetLabel: cluster_id
-        replacement: {{ .Values.global.cattle.clusterId }}
+        replacement: {{ .Values.global.cattle.clusterId | quote }}
     {{- end }}
-    {{ if .Values.global.cattle.clusterName}}
+    {{- if .Values.global.cattle.clusterName}}
       - sourceLabels: [__address__]
         targetLabel: cluster_name
-        replacement: {{ .Values.global.cattle.clusterName }}
+        replacement: {{ .Values.global.cattle.clusterName | quote }}
+    {{- end }}
     {{- end }}
 {{- if .Values.kubelet.serviceMonitor.relabelings }}
     relabelings:

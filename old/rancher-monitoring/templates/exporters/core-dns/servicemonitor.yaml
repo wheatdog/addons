@@ -41,19 +41,22 @@ spec:
     proxyUrl: {{ .Values.coreDns.serviceMonitor.proxyUrl}}
     {{- end }}
     bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    {{- $hasExtra := or .Values.global.cattle.clusterId .Values.global.cattle.clusterName }}
+    {{- if or .Values.coreDns.serviceMonitor.metricRelabelings $hasExtra }}
     metricRelabelings:
     {{- if .Values.coreDns.serviceMonitor.metricRelabelings }}
     {{ tpl (toYaml .Values.coreDns.serviceMonitor.metricRelabelings | indent 4) . }}
     {{- end }}
-    {{ if .Values.global.cattle.clusterId }}
+    {{- if .Values.global.cattle.clusterId }}
     - sourceLabels: [__address__]
       targetLabel: cluster_id
-      replacement: {{ .Values.global.cattle.clusterId }}
+      replacement: {{ .Values.global.cattle.clusterId | quote }}
     {{- end }}
-    {{ if .Values.global.cattle.clusterName }}
+    {{- if .Values.global.cattle.clusterName }}
     - sourceLabels: [__address__]
       targetLabel: cluster_name
-      replacement: {{ .Values.global.cattle.clusterName }}
+      replacement: {{ .Values.global.cattle.clusterName | quote }}
+    {{- end }}
     {{- end }}
 {{- if .Values.coreDns.serviceMonitor.relabelings }}
     relabelings:

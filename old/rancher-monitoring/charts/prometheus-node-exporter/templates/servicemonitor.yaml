@@ -58,18 +58,21 @@ spec:
       relabelings:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- $hasExtra := or .Values.global.cattle.clusterId .Values.global.cattle.clusterName }}
+      {{- if or .Values.prometheus.monitor.metricRelabelings $hasExtra }}
       metricRelabelings:
       {{- with .Values.prometheus.monitor.metricRelabelings }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{ if .Values.global.cattle.clusterId }}
+      {{- if .Values.global.cattle.clusterId }}
         - sourceLabels: [__address__]
           targetLabel: cluster_id
-          replacement: {{ .Values.global.cattle.clusterId }}
+          replacement: {{ .Values.global.cattle.clusterId | quote }}
       {{- end }}
-      {{ if .Values.global.cattle.clusterName }}
+      {{- if .Values.global.cattle.clusterName }}
         - sourceLabels: [__address__]
           targetLabel: cluster_name
-          replacement: {{ .Values.global.cattle.clusterName }}
+          replacement: {{ .Values.global.cattle.clusterName | quote }}
+      {{- end }}
       {{- end }}
 {{- end }}
